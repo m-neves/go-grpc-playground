@@ -6,11 +6,11 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"regexp"
 	"strings"
 
 	"github.com/m-neves/go-grpc-playground/api/pb"
-	"github.com/m-neves/go-grpc-playground/client/cmd"
+	"github.com/m-neves/go-grpc-playground/client/service"
+
 	"google.golang.org/grpc"
 )
 
@@ -45,20 +45,20 @@ func readConsole(client pb.GreetServiceClient) {
 		// Convert CRLF to LF
 		c = strings.Replace(c, "\n", "", -1)
 
-		// Split incoming command into slice
-		r := regexp.MustCompile(`\"[^\"]+\"|\S+`)
-		m := r.FindAllString(c, -1)
+		// // Split incoming command into slice
+		// r := regexp.MustCompile(`\"[^\"]+\"|\S+`)
+		// m := r.FindAllString(c, -1)
 
-		// Sanitize quotes on flags
-		for i := range m {
-			m[i] = strings.Trim(m[i], "\"")
-		}
+		// // Sanitize quotes on flags
+		// for i := range m {
+		// 	m[i] = strings.Trim(m[i], "\"")
+		// }
 
-		if len(m) == 0 {
-			log.Println("No command specified")
-			continue
-		}
+		// if len(m) == 0 {
+		// 	log.Println("No command specified")
+		// 	continue
+		// }
 
-		cmd.Exec(m, client)
+		service.Exec(c, client)
 	}
 }

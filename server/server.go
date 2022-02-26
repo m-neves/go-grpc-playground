@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/m-neves/go-grpc-playground/api/pb"
 	"google.golang.org/grpc"
@@ -25,6 +27,26 @@ func (s *server) Greet(ctx context.Context, in *pb.GreetRequest) (*pb.GreetRespo
 	res := &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}
 
 	return res, nil
+}
+
+func (s *server) GreetManyTimes(in *pb.GreetRequest, stream pb.GreetService_GreetManyTimesServer) error {
+	const n = 10
+	m := in.GetMessage()
+
+	log.Printf("Streaming %d messages: %s", n, m)
+
+	for i := 0; i <= n; i++ {
+		res := &pb.GreetManyTimesResponse{
+			Status:  pb.ResponseStatus_SUCCESS,
+			Message: fmt.Sprintf("%s - %d", m, i),
+		}
+
+		stream.Send(res)
+		time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
+	}
+
+	log.Printf("Finished streaming %d messages", n)
+	return nil
 }
 
 func main() {
