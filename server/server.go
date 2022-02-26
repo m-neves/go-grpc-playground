@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -42,11 +43,56 @@ func (s *server) GreetManyTimes(in *pb.GreetRequest, stream pb.GreetService_Gree
 		}
 
 		stream.Send(res)
-		time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
+		time.Sleep(time.Duration(rand.Intn(3)) * time.Second)
 	}
 
 	log.Printf("Finished streaming %d messages", n)
 	return nil
+}
+
+func (s *server) LongGreet(stream pb.GreetService_LongGreetServer) error {
+	// Number of requests the server will accept
+	const n = 10
+	acceptedMessages := rand.Intn(n)
+
+	// Processed messages is incremented after each successful iteration
+	// As so, it starts as 1
+	processedMessages := 1
+
+	log.Printf("Processing %d requests", acceptedMessages)
+
+	for {
+		m, err := stream.Recv()
+
+		if err == io.EOF {
+			// If all messages get processed, return Success
+			// Could break out of loop or return SendAndClose err
+			log.Printf("All messages processed")
+			return stream.SendAndClose(&pb.GreetResponse{
+				Status: pb.ResponseStatus_SUCCESS,
+			})
+		}
+
+		if err != nil {
+			return err
+		}
+
+		var req pb.GreetRequest
+		req.Message = m.GetMessage()
+
+		log.Printf("Processed %v", &req)
+
+		// End client streaming and send the client a response
+		if processedMessages >= acceptedMessages {
+			log.Printf("Processed %d messages", processedMessages)
+
+			return stream.SendAndClose(&pb.GreetResponse{
+				Status: pb.ResponseStatus_STREAM_END,
+			})
+		}
+
+		processedMessages++
+	}
 }
 
 func main() {

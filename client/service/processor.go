@@ -39,6 +39,8 @@ func Exec(cmd string, c pb.GreetServiceClient) {
 		unary(command.Message, c)
 	case "sstream":
 		serverStream(command.Message, c)
+	case "cstream":
+		clientStream(c)
 	default:
 		log.Println("Unknown command")
 	}
@@ -78,6 +80,33 @@ func serverStream(message string, c pb.GreetServiceClient) error {
 
 		log.Printf("Received message: %s", msg)
 	}
+
+	return nil
+}
+
+func clientStream(c pb.GreetServiceClient) error {
+	messages := []string{"Devilish Trio", "Drake", "Linkin Park", "Bones"}
+
+	stream, err := c.LongGreet(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	var req pb.GreetRequest
+	for _, v := range messages {
+		req.Message = v
+		stream.Send(&req)
+	}
+
+	res, err := stream.CloseAndRecv()
+
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	log.Printf("Received from server: %v", res)
 
 	return nil
 }
