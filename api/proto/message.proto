@@ -8,6 +8,7 @@ enum ResponseStatus {
     UNKNOWN_STATUS = 0;
     SUCCESS = 1;
     FAILURE = 2;
+    STREAM_END = 3;
 }
 
 message GreetRequest {
@@ -29,4 +30,7 @@ service GreetService {
 
   // Server Streaming
   rpc GreetManyTimes(GreetRequest) returns (stream GreetManyTimesResponse) {}
+
+  // Client Streaming
+  rpc LongGreet(stream GreetRequest) returns (GreetResponse) {}
 }

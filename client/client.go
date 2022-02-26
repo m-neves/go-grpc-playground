@@ -45,20 +45,6 @@ func readConsole(client pb.GreetServiceClient) {
 		// Convert CRLF to LF
 		c = strings.Replace(c, "\n", "", -1)
 
-		// // Split incoming command into slice
-		// r := regexp.MustCompile(`\"[^\"]+\"|\S+`)
-		// m := r.FindAllString(c, -1)
-
-		// // Sanitize quotes on flags
-		// for i := range m {
-		// 	m[i] = strings.Trim(m[i], "\"")
-		// }
-
-		// if len(m) == 0 {
-		// 	log.Println("No command specified")
-		// 	continue
-		// }
-
 		service.Exec(c, client)
 	}
 }
