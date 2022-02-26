@@ -18,6 +18,15 @@ message GreetResponse {
   ResponseStatus status = 1;
 }
 
+message GreetManyTimesResponse {
+  ResponseStatus status = 1;
+  string Message = 2;
+}
+
 service GreetService {
+  // Unary
   rpc Greet (GreetRequest) returns (GreetResponse){}
+
+  // Server Streaming
+  rpc GreetManyTimes(GreetRequest) returns (stream GreetManyTimesResponse) {}
 }
