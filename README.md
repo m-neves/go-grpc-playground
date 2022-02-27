@@ -25,3 +25,6 @@ Server streaming
 
 Client streaming
 `-cmd=cstream`
+
+Bidirectional streaming
+`-cmd=bidi`

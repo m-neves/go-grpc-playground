@@ -3,8 +3,12 @@ package service
 import (
 	"context"
 	"flag"
+	"fmt"
 	"io"
 	"log"
+	"math/rand"
+	"sync"
+	"time"
 
 	"strings"
 
@@ -41,11 +45,12 @@ func Exec(cmd string, c pb.GreetServiceClient) {
 		serverStream(command.Message, c)
 	case "cstream":
 		clientStream(c)
+	case "bidi":
+		biDiStream(c)
 	default:
 		log.Println("Unknown command")
 	}
 }
-
 func unary(message string, c pb.GreetServiceClient) (*pb.GreetResponse, error) {
 	req := &pb.GreetRequest{Message: message}
 	res, err := c.Greet(context.Background(), req)
@@ -108,5 +113,59 @@ func clientStream(c pb.GreetServiceClient) error {
 
 	log.Printf("Received from server: %v", res)
 
+	return nil
+}
+
+func biDiStream(c pb.GreetServiceClient) error {
+
+	messages := []string{"Nothing", "but", "a", "southern", "soul", "deep", "inside", "of", "me", "Pride", "for"}
+	messagesToSend := 9 //rand.Intn(10)
+
+	client, err := c.GreetEveryone(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	// Sending
+	go func() {
+		var req pb.GreetRequest
+		for i := 0; i <= messagesToSend; i++ {
+			req.Message = messages[i]
+			client.Send(&req)
+
+			time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+		}
+
+		client.CloseSend()
+		wg.Done()
+	}()
+
+	// Receiving
+	go func() {
+		for {
+			res, err := client.Recv()
+
+			if err == io.EOF {
+				log.Println("Finished receiving")
+				break
+			}
+
+			if err != nil {
+				// TODO implement
+			}
+
+			log.Printf("Received: %v", res)
+		}
+
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	fmt.Println("Finished")
 	return nil
 }

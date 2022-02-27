@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/m-neves/go-grpc-playground/api/pb"
@@ -93,6 +94,61 @@ func (s *server) LongGreet(stream pb.GreetService_LongGreetServer) error {
 
 		processedMessages++
 	}
+}
+
+func (s *server) GreetEveryone(stream pb.GreetService_GreetEveryoneServer) error {
+
+	var responseStatus pb.ResponseStatus
+	messagedToSend := 10 //rand.Intn(10)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	// Sending
+	go func() {
+		for i := 0; i <= messagedToSend; i++ {
+			status := rand.Intn(len(pb.ResponseStatus_name))
+
+			if status == 0 {
+				status = 1
+			}
+
+			responseStatus = pb.ResponseStatus(status)
+			stream.Send(&pb.GreetResponse{
+				Status: responseStatus,
+			})
+
+			time.Sleep(time.Duration(rand.Intn(3000)) * time.Millisecond)
+		}
+
+		wg.Done()
+	}()
+
+	// Receiving
+	go func() {
+		for {
+			req, err := stream.Recv()
+
+			if err == io.EOF {
+				log.Println("Finished recieving")
+				break
+			}
+
+			if err != nil {
+				log.Println("Server receive error", err.Error())
+				break
+			}
+
+			log.Printf("Recieved %v", req)
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	fmt.Println("Finished")
+
+	return nil
 }
 
 func main() {
