@@ -65,6 +65,8 @@ func unary(message string, c pb.GreetServiceClient) (*pb.GreetResponse, error) {
 		return nil, err
 	}
 
+	log.Printf("Got response: %v", res)
+
 	return res, nil
 }
 

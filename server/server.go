@@ -16,6 +16,7 @@ import (
 	"github.com/m-neves/go-grpc-playground/api/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
@@ -209,8 +210,20 @@ func main() {
 		log.Fatalf("Failed to listen on port %d: %s", port, err.Error())
 	}
 
+	// TLS server
+	certFile := "ssl/server.crt"
+	keyFile := "ssl/server.pem"
+	creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+
+	if err != nil {
+		log.Fatalf("Failed to start TLS Server: %v", err)
+	}
+
+	opts := grpc.Creds(creds)
+	// End TLS
+
 	// Creates a gRPC server
-	s := grpc.NewServer()
+	s := grpc.NewServer(opts)
 
 	// Register the generated protobuf service
 	pb.RegisterGreetServiceServer(s, &server{})
