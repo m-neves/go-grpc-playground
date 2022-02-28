@@ -20,6 +20,12 @@ Start server
 Unary request
 `-cmd=unary -msg="place to rest"`
 
+Unary request with gRPC
+To raise an error:
+`-cmd=errunary -msg=doerr`
+To get a correct message
+`-cmd=errunary -msg=correct`
+
 Server streaming
 `-cmd=sstream -msg=place to rest`
 

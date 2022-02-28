@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/m-neves/go-grpc-playground/api/pb"
+	"google.golang.org/grpc/status"
 )
 
 type Command struct {
@@ -41,6 +42,8 @@ func Exec(cmd string, c pb.GreetServiceClient) {
 	switch command.Command {
 	case "unary":
 		unary(command.Message, c)
+	case "errunary":
+		unaryWithError(command.Message, c)
 	case "sstream":
 		serverStream(command.Message, c)
 	case "cstream":
@@ -118,6 +121,16 @@ func clientStream(c pb.GreetServiceClient) error {
 
 func biDiStream(c pb.GreetServiceClient) error {
 
+	/*
+		// This could could also be implemented with channels
+		ch := make(chan struct{})
+		// Close channel when considered the stream has finished
+		// This could be when client finishes sending, or receiving
+		close(ch)
+		// Block until channel receives a message or gets closed
+		<-ch
+	*/
+
 	messages := []string{"Nothing", "but", "a", "southern", "soul", "deep", "inside", "of", "me", "Pride", "for"}
 	messagesToSend := 9 //rand.Intn(10)
 
@@ -168,4 +181,25 @@ func biDiStream(c pb.GreetServiceClient) error {
 
 	fmt.Println("Finished")
 	return nil
+}
+
+func unaryWithError(message string, c pb.GreetServiceClient) (*pb.GreetResponse, error) {
+
+	req := &pb.GreetRequest{Message: message}
+
+	res, err := c.GreetWithError(context.Background(), req)
+
+	if err != nil {
+		// Check if error is a gRPC error
+		if status, ok := status.FromError(err); ok {
+			log.Printf("Received gRPC error: %v", status)
+			return nil, err
+		} else {
+			log.Printf("Received standard error: %v", status)
+			return nil, err
+		}
+	}
+
+	log.Printf("Received response: %v", res)
+	return res, nil
 }

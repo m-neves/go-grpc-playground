@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/m-neves/go-grpc-playground/api/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const port = 5000
@@ -29,6 +32,32 @@ func (s *server) Greet(ctx context.Context, in *pb.GreetRequest) (*pb.GreetRespo
 	res := &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}
 
 	return res, nil
+}
+
+func (s *server) GreetWithError(ctx context.Context, in *pb.GreetRequest) (*pb.GreetResponse, error) {
+	/*
+		gRPC error docs:
+		https://grpc.io/docs/guides/error/
+
+		gRPC error codes:
+		https://avi.im/grpc-errors/#go
+	*/
+
+	// Returns a error in case message is doerr
+	msg := in.GetMessage()
+
+	if msg == "doerr" {
+		log.Println("returning a gRPC error response")
+		return nil, status.Error(codes.Unauthenticated, "unauth gRPC error from server")
+	}
+
+	if msg == "err" {
+		log.Println("returning a gRPC error response")
+		return nil, errors.New("standard error")
+	}
+
+	log.Println("returning a successful gRPC call")
+	return &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}, nil
 }
 
 func (s *server) GreetManyTimes(in *pb.GreetRequest, stream pb.GreetService_GreetManyTimesServer) error {
