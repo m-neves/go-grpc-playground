@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -47,4 +48,16 @@ func readConsole(client pb.GreetServiceClient) {
 
 		service.Exec(c, client)
 	}
+}
+
+func Unary(message string, c pb.GreetServiceClient) (*pb.GreetResponse, error) {
+	req := &pb.GreetRequest{Message: message}
+	res, err := c.Greet(context.Background(), req)
+
+	if err != nil {
+		log.Fatal(err.Error())
+		return nil, err
+	}
+
+	return res, nil
 }

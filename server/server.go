@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -9,10 +10,13 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/m-neves/go-grpc-playground/api/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const port = 5000
@@ -28,6 +32,32 @@ func (s *server) Greet(ctx context.Context, in *pb.GreetRequest) (*pb.GreetRespo
 	res := &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}
 
 	return res, nil
+}
+
+func (s *server) GreetWithError(ctx context.Context, in *pb.GreetRequest) (*pb.GreetResponse, error) {
+	/*
+		gRPC error docs:
+		https://grpc.io/docs/guides/error/
+
+		gRPC error codes:
+		https://avi.im/grpc-errors/#go
+	*/
+
+	// Returns a error in case message is doerr
+	msg := in.GetMessage()
+
+	if msg == "doerr" {
+		log.Println("returning a gRPC error response")
+		return nil, status.Error(codes.Unauthenticated, "unauth gRPC error from server")
+	}
+
+	if msg == "err" {
+		log.Println("returning a gRPC error response")
+		return nil, errors.New("standard error")
+	}
+
+	log.Println("returning a successful gRPC call")
+	return &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}, nil
 }
 
 func (s *server) GreetManyTimes(in *pb.GreetRequest, stream pb.GreetService_GreetManyTimesServer) error {
@@ -93,6 +123,61 @@ func (s *server) LongGreet(stream pb.GreetService_LongGreetServer) error {
 
 		processedMessages++
 	}
+}
+
+func (s *server) GreetEveryone(stream pb.GreetService_GreetEveryoneServer) error {
+
+	var responseStatus pb.ResponseStatus
+	messagedToSend := 10 //rand.Intn(10)
+
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
+
+	// Sending
+	go func() {
+		for i := 0; i <= messagedToSend; i++ {
+			status := rand.Intn(len(pb.ResponseStatus_name))
+
+			if status == 0 {
+				status = 1
+			}
+
+			responseStatus = pb.ResponseStatus(status)
+			stream.Send(&pb.GreetResponse{
+				Status: responseStatus,
+			})
+
+			time.Sleep(time.Duration(rand.Intn(3000)) * time.Millisecond)
+		}
+
+		wg.Done()
+	}()
+
+	// Receiving
+	go func() {
+		for {
+			req, err := stream.Recv()
+
+			if err == io.EOF {
+				log.Println("Finished recieving")
+				break
+			}
+
+			if err != nil {
+				log.Println("Server receive error", err.Error())
+				break
+			}
+
+			log.Printf("Recieved %v", req)
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	fmt.Println("Finished")
+
+	return nil
 }
 
 func main() {
