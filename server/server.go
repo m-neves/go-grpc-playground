@@ -60,6 +60,27 @@ func (s *server) GreetWithError(ctx context.Context, in *pb.GreetRequest) (*pb.G
 	return &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}, nil
 }
 
+func (s *server) GreetWithTimeout(ctx context.Context, in *pb.GreetRequest) (*pb.GreetResponse, error) {
+	delay := 5
+
+	msg := in.GetMessage()
+
+	if msg == "ok" {
+		delay = 1
+	}
+
+	for i := 0; i < delay; i++ {
+		if ctx.Err() == context.Canceled {
+			log.Println("Context cancelled")
+			return nil, status.Error(codes.Canceled, "client cancelled the request")
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	return &pb.GreetResponse{Status: pb.ResponseStatus_SUCCESS}, nil
+}
+
 func (s *server) GreetManyTimes(in *pb.GreetRequest, stream pb.GreetService_GreetManyTimesServer) error {
 	const n = 10
 	m := in.GetMessage()

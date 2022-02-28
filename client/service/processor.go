@@ -44,6 +44,8 @@ func Exec(cmd string, c pb.GreetServiceClient) {
 		unary(command.Message, c)
 	case "errunary":
 		unaryWithError(command.Message, c)
+	case "unarytimeout":
+		unaryWithTimeout(command.Message, c)
 	case "sstream":
 		serverStream(command.Message, c)
 	case "cstream":
@@ -201,5 +203,22 @@ func unaryWithError(message string, c pb.GreetServiceClient) (*pb.GreetResponse,
 	}
 
 	log.Printf("Received response: %v", res)
+	return res, nil
+}
+
+func unaryWithTimeout(message string, c pb.GreetServiceClient) (*pb.GreetResponse, error) {
+	req := &pb.GreetRequest{Message: message}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	res, err := c.GreetWithTimeout(ctx, req)
+
+	if err != nil {
+		log.Printf("Error while waiting response: %v", err)
+		return nil, err
+	}
+
+	log.Printf("Response: %v", res)
 	return res, nil
 }

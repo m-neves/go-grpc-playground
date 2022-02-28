@@ -28,7 +28,11 @@ service GreetService {
   // Unary
   rpc Greet (GreetRequest) returns (GreetResponse){}
 
+  // Unary with error
   rpc GreetWithError (GreetRequest) returns (GreetResponse){}
+
+  // Unary with Timeout
+  rpc GreetWithTimeout (GreetRequest) returns (GreetResponse){}
 
   // Server Streaming
   rpc GreetManyTimes(GreetRequest) returns (stream GreetManyTimesResponse) {}
