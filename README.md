@@ -5,12 +5,15 @@ Go gRPC playground for learning and testing
 ## Makefile Commands
 
 Compile protobuf
+
 `make all`
 
 Start client
+
 `client-start`
 
 Start server
+
 `server-start`
 
 ## Client Commands
