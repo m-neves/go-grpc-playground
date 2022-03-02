@@ -13,12 +13,24 @@ import (
 	"github.com/m-neves/go-grpc-playground/client/service"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 const port = 5000
 
 func main() {
-	conn, err := grpc.Dial(fmt.Sprintf(":%d", port), grpc.WithInsecure())
+	// TLS
+	certFile := "ssl/ca.crt"
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
+
+	if err != nil {
+		log.Fatalf("Failed to start TLS client: %v", err)
+	}
+
+	opts := grpc.WithTransportCredentials(creds)
+	// End TLS
+
+	conn, err := grpc.Dial(fmt.Sprintf(":%d", port), opts)
 
 	if err != nil {
 		log.Fatalf("Failed to dial at port %d: %s", port, err.Error())
@@ -27,6 +39,7 @@ func main() {
 	defer conn.Close()
 
 	c := pb.NewGreetServiceClient(conn)
+
 	go readConsole(c)
 
 	sig := make(chan os.Signal, 1)

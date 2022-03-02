@@ -20,7 +20,10 @@ const _ = grpc.SupportPackageIsVersion7
 type GreetServiceClient interface {
 	// Unary
 	Greet(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error)
+	// Unary with error
 	GreetWithError(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error)
+	// Unary with Timeout
+	GreetWithTimeout(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error)
 	// Server Streaming
 	GreetManyTimes(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (GreetService_GreetManyTimesClient, error)
 	// Client Streaming
@@ -49,6 +52,15 @@ func (c *greetServiceClient) Greet(ctx context.Context, in *GreetRequest, opts .
 func (c *greetServiceClient) GreetWithError(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error) {
 	out := new(GreetResponse)
 	err := c.cc.Invoke(ctx, "/api.pb.GreetService/GreetWithError", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *greetServiceClient) GreetWithTimeout(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error) {
+	out := new(GreetResponse)
+	err := c.cc.Invoke(ctx, "/api.pb.GreetService/GreetWithTimeout", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +170,10 @@ func (x *greetServiceGreetEveryoneClient) Recv() (*GreetResponse, error) {
 type GreetServiceServer interface {
 	// Unary
 	Greet(context.Context, *GreetRequest) (*GreetResponse, error)
+	// Unary with error
 	GreetWithError(context.Context, *GreetRequest) (*GreetResponse, error)
+	// Unary with Timeout
+	GreetWithTimeout(context.Context, *GreetRequest) (*GreetResponse, error)
 	// Server Streaming
 	GreetManyTimes(*GreetRequest, GreetService_GreetManyTimesServer) error
 	// Client Streaming
@@ -177,6 +192,9 @@ func (UnimplementedGreetServiceServer) Greet(context.Context, *GreetRequest) (*G
 }
 func (UnimplementedGreetServiceServer) GreetWithError(context.Context, *GreetRequest) (*GreetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GreetWithError not implemented")
+}
+func (UnimplementedGreetServiceServer) GreetWithTimeout(context.Context, *GreetRequest) (*GreetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GreetWithTimeout not implemented")
 }
 func (UnimplementedGreetServiceServer) GreetManyTimes(*GreetRequest, GreetService_GreetManyTimesServer) error {
 	return status.Errorf(codes.Unimplemented, "method GreetManyTimes not implemented")
@@ -232,6 +250,24 @@ func _GreetService_GreetWithError_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GreetServiceServer).GreetWithError(ctx, req.(*GreetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GreetService_GreetWithTimeout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GreetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreetServiceServer).GreetWithTimeout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.pb.GreetService/GreetWithTimeout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreetServiceServer).GreetWithTimeout(ctx, req.(*GreetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -323,6 +359,10 @@ var GreetService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GreetWithError",
 			Handler:    _GreetService_GreetWithError_Handler,
+		},
+		{
+			MethodName: "GreetWithTimeout",
+			Handler:    _GreetService_GreetWithTimeout_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
