@@ -22,15 +22,15 @@ Unary request
 
 Unary request with gRPC
 To raise an error:
-`-cmd=errunary -msg=doerr`
+```-cmd=errunary -msg=doerr```
 To get a correct message
-`-cmd=errunary -msg=correct`
+```-cmd=errunary -msg=correct```
 
 Server streaming
-`-cmd=sstream -msg=place to rest`
+```-cmd=sstream -msg=place to rest```
 
 Client streaming
-`-cmd=cstream`
+```-cmd=cstream```
 
 Bidirectional streaming
-`-cmd=bidi`
+```-cmd=bidi```
