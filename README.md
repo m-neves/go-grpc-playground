@@ -25,7 +25,6 @@ Start server
 
 To raise an error:
 `-cmd=errunary -msg=doerr`
-
 To get a correct message
 `-cmd=errunary -msg=correct`
 
@@ -47,3 +46,12 @@ To get normal response:
 #### Bidirectional streaming
 
 `-cmd=bidi`
+
+Server streaming
+```-cmd=sstream -msg=place to rest```
+
+Client streaming
+```-cmd=cstream```
+
+Bidirectional streaming
+```-cmd=bidi```
