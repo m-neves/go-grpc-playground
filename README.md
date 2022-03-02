@@ -60,14 +60,3 @@ To get normal response:
 #### Bidirectional streaming
 
 `-cmd=bidi`
-
-Server streaming
-`-cmd=sstream -msg=place to rest`
-
-Client streaming
-
-`-cmd=cstream`
-
-Bidirectional streaming
-
-`-cmd=bidi`
