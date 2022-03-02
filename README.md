@@ -24,6 +24,7 @@ Start server
 
 `-cmd=unary -msg="place to rest"`
 
+
 #### Unary request with gRPC error
 
 To raise an error:
@@ -33,6 +34,7 @@ To raise an error:
 To get a correct message
 
 `-cmd=errunary -msg=correct`
+
 
 #### Unary request with timeout
 
@@ -44,13 +46,16 @@ To get normal response:
 
 `-cmd=unarytimeout -msg=ok`
 
+
 #### Server streaming
 
 `-cmd=sstream -msg=place to rest`
 
+
 #### Client streaming
 
 `-cmd=cstream`
+
 
 #### Bidirectional streaming
 
@@ -60,7 +65,9 @@ Server streaming
 `-cmd=sstream -msg=place to rest`
 
 Client streaming
+
 `-cmd=cstream`
 
 Bidirectional streaming
+
 `-cmd=bidi`
